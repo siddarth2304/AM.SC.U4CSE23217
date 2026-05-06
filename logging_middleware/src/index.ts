@@ -29,7 +29,8 @@ function getLogUrl() {
   }
 
   try {
-    const env = import.meta.env as { VITE_LOGGING_API_URL?: string };
+    const meta = import.meta as ImportMeta & { env?: { VITE_LOGGING_API_URL?: string } };
+    const env = meta.env;
     return env?.VITE_LOGGING_API_URL || "";
   } catch {
     return "";

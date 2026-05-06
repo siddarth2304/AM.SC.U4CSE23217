@@ -43,13 +43,27 @@ function requireText(value: unknown, name: string) {
   return value.trim();
 }
 
+function requireType(value: unknown) {
+  const type = parseType(value);
+
+  if (!type) {
+    throw new HttpError(400, "BAD_REQUEST", "type is required");
+  }
+
+  return type;
+}
+
 export function parseNotificationInput(body: unknown): NotificationInput {
+  if (!body || typeof body !== "object") {
+    throw new HttpError(400, "BAD_REQUEST", "Request body is required");
+  }
+
   const input = body as Record<string, unknown>;
 
   return {
     title: requireText(input.title, "title"),
     message: requireText(input.message, "message"),
-    type: parseType(input.type) as NotificationType
+    type: requireType(input.type)
   };
 }
 
