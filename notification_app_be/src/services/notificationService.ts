@@ -3,9 +3,12 @@ import {
   findNotificationById,
   findNotifications,
   findPriorityNotifications,
-  setViewed
+  insertNotification,
+  removeNotification,
+  setViewed,
+  updateNotification
 } from "../repositories/notificationRepository.js";
-import { NotificationQuery, NotificationType } from "../types/notification.js";
+import { NotificationInput, NotificationQuery, NotificationType } from "../types/notification.js";
 import { HttpError } from "../utils/httpError.js";
 
 const types: NotificationType[] = ["Placement", "Result", "Event"];
@@ -30,6 +33,24 @@ export function parseType(value: unknown) {
   }
 
   return value as NotificationType;
+}
+
+function requireText(value: unknown, name: string) {
+  if (typeof value !== "string" || !value.trim()) {
+    throw new HttpError(400, "BAD_REQUEST", `${name} is required`);
+  }
+
+  return value.trim();
+}
+
+export function parseNotificationInput(body: unknown): NotificationInput {
+  const input = body as Record<string, unknown>;
+
+  return {
+    title: requireText(input.title, "title"),
+    message: requireText(input.message, "message"),
+    type: parseType(input.type) as NotificationType
+  };
 }
 
 export async function getNotifications(query: NotificationQuery) {
@@ -62,4 +83,22 @@ export async function markViewed(id: string) {
   const item = await setViewed(id);
   await Log("backend", "info", "service", `Notification ${id} marked viewed`);
   return item;
+}
+
+export async function createNotification(input: NotificationInput) {
+  const item = await insertNotification(input);
+  await Log("backend", "info", "service", `Created notification ${item.id}`);
+  return item;
+}
+
+export async function editNotification(id: string, input: NotificationInput) {
+  const item = await updateNotification(id, input);
+  await Log("backend", "info", "service", `Updated notification ${id}`);
+  return item;
+}
+
+export async function deleteNotification(id: string) {
+  const result = await removeNotification(id);
+  await Log("backend", "info", "service", `Deleted notification ${id}`);
+  return result;
 }

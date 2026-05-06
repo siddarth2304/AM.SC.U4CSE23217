@@ -76,7 +76,17 @@ h1 {
 .toolbar {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  gap: 16px;
   margin-bottom: 18px;
+}
+
+.meta {
+  display: flex;
+  gap: 10px;
+  color: #667386;
+  font-size: 0.92rem;
+  white-space: nowrap;
 }
 
 .list {
@@ -191,6 +201,11 @@ h1 {
   .tabs,
   .filters {
     width: 100%;
+  }
+
+  .toolbar {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .tabs button,

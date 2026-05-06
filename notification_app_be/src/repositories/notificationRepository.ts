@@ -1,6 +1,11 @@
 import { Log } from "logging_middleware";
 import { env } from "../config/env.js";
-import { NotificationItem, NotificationQuery, NotificationType } from "../types/notification.js";
+import {
+  NotificationInput,
+  NotificationItem,
+  NotificationQuery,
+  NotificationType
+} from "../types/notification.js";
 import { HttpError } from "../utils/httpError.js";
 
 const fallbackItems: NotificationItem[] = [
@@ -154,4 +159,48 @@ export async function setViewed(id: string) {
 
   item.viewed = true;
   return item;
+}
+
+export async function insertNotification(input: NotificationInput) {
+  const data = await loadItems();
+  const nextId =
+    Math.max(0, ...data.map((item) => Number(item.id)).filter((id) => Number.isFinite(id))) + 1;
+
+  const item: NotificationItem = {
+    id: String(nextId),
+    title: input.title,
+    message: input.message,
+    type: input.type,
+    createdAt: new Date().toISOString(),
+    viewed: false
+  };
+
+  data.push(item);
+  return item;
+}
+
+export async function updateNotification(id: string, input: NotificationInput) {
+  const item = await findNotificationById(id);
+
+  if (!item) {
+    throw new HttpError(404, "NOT_FOUND", "Notification not found");
+  }
+
+  item.title = input.title;
+  item.message = input.message;
+  item.type = input.type;
+
+  return item;
+}
+
+export async function removeNotification(id: string) {
+  const data = await loadItems();
+  const index = data.findIndex((item) => item.id === id);
+
+  if (index === -1) {
+    throw new HttpError(404, "NOT_FOUND", "Notification not found");
+  }
+
+  data.splice(index, 1);
+  return { id, deleted: true };
 }

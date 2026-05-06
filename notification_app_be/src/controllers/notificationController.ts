@@ -1,10 +1,14 @@
 import { Request, Response } from "express";
 import { Log } from "logging_middleware";
 import {
+  createNotification,
+  deleteNotification,
+  editNotification,
   getNotification,
   getNotifications,
   getPriority,
   markViewed,
+  parseNotificationInput,
   parsePositiveInt,
   parseType
 } from "../services/notificationService.js";
@@ -16,13 +20,17 @@ export async function listNotifications(req: Request, res: Response) {
   const type = parseType(req.query.type);
 
   const result = await getNotifications({ page, limit, type });
+  const totalPages = Math.max(1, Math.ceil(result.total / limit));
   await Log("backend", "info", "route", `GET /notifications page=${page} type=${type || "All"}`);
 
   sendSuccess(res, result.items, {
     page,
     limit,
     type: type || "All",
-    total: result.total
+    total: result.total,
+    totalPages,
+    hasNextPage: page < totalPages,
+    hasPreviousPage: page > 1
   });
 }
 
@@ -49,4 +57,27 @@ export async function viewNotification(req: Request, res: Response) {
   const item = await markViewed(id);
   await Log("backend", "info", "route", `PATCH /notifications/${id}/viewed`);
   sendSuccess(res, item);
+}
+
+export async function addNotification(req: Request, res: Response) {
+  const input = parseNotificationInput(req.body);
+  const item = await createNotification(input);
+  await Log("backend", "info", "route", "POST /notifications");
+  res.status(201);
+  sendSuccess(res, item);
+}
+
+export async function updateNotification(req: Request, res: Response) {
+  const id = String(req.params.id);
+  const input = parseNotificationInput(req.body);
+  const item = await editNotification(id, input);
+  await Log("backend", "info", "route", `PUT /notifications/${id}`);
+  sendSuccess(res, item);
+}
+
+export async function removeNotification(req: Request, res: Response) {
+  const id = String(req.params.id);
+  const result = await deleteNotification(id);
+  await Log("backend", "info", "route", `DELETE /notifications/${id}`);
+  sendSuccess(res, result);
 }

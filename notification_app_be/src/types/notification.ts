@@ -9,6 +9,12 @@ export type NotificationItem = {
   viewed: boolean;
 };
 
+export type NotificationInput = {
+  title: string;
+  message: string;
+  type: NotificationType;
+};
+
 export type NotificationQuery = {
   type?: NotificationType;
   page: number;

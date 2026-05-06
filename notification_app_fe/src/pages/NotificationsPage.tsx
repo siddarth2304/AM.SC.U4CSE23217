@@ -14,6 +14,7 @@ export function NotificationsPage() {
   const [page, setPage] = useState(1);
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [total, setTotal] = useState(0);
+  const [responseTimeMs, setResponseTimeMs] = useState<number | undefined>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -38,6 +39,7 @@ export function NotificationsPage() {
 
         setItems(response.data);
         setTotal(view === "priority" ? response.data.length : response.meta.total || 0);
+        setResponseTimeMs(response.meta.responseTimeMs);
         await Log("frontend", "info", "page", `Loaded ${view} notifications`);
       } catch (err) {
         if (!active) {
@@ -48,6 +50,7 @@ export function NotificationsPage() {
         setError(message);
         setItems([]);
         setTotal(0);
+        setResponseTimeMs(undefined);
       } finally {
         if (active) {
           setLoading(false);
@@ -116,6 +119,11 @@ export function NotificationsPage() {
               {item}
             </button>
           ))}
+        </div>
+
+        <div className="meta">
+          <span>{total} total</span>
+          {responseTimeMs !== undefined && <span>{responseTimeMs} ms</span>}
         </div>
       </section>
 
